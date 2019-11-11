@@ -41,13 +41,13 @@ def create_tables(db_file):
         cur.execute(create_table)
 
         for index in range(len(seasons)):
-            # Create table with the create_table query
+            # Create table for single-season transaction with the create_table query
             create_table = create_table_template.format(season=seasons[index])
             cur.execute(create_table)
 
             # Insert values into table
 
-            # url that we are scraping
+            # the url that contains the data we need
             url = url_template.format(year=years[index])
 
             # this is the html from the given url
@@ -63,6 +63,7 @@ def create_tables(db_file):
             days = [day.getText() for day in soup.findAll("h3")][:-8]
 
             daily_transactions = []
+            # Get all the transactions from the given season
             for ul in soup.findAll("ul", style="padding-bottom: 15px; line-height: 1.5em;"):
                 daily_transactions.append([li.getText() for li in ul.findAll("li")])
 
