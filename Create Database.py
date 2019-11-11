@@ -6,10 +6,11 @@ from bs4 import BeautifulSoup
 file_path = "database.DB"
 
 
-def create_season_tables(db_file):
+def create_tables(db_file):
     """
-    create a database connection to a SQLite database
-    generate the tables containing transactions for each season
+    establish a database connection to a SQLite database
+    create the tables containing transactions for each season
+    create the table containing every single transaction
     close the connection
     """
     conn = None
@@ -28,6 +29,17 @@ def create_season_tables(db_file):
         # Get a connection and a cursor to execute sql commands
         conn = sqlite3.connect(db_file)
         cur = conn.cursor()
+
+        # Create a table that contains all records of transactions (all season)
+        create_table = "CREATE TABLE IF NOT EXISTS transactions (" \
+                       "season TEXT NOT NULL," \
+                       "month TEXT NOT NULL," \
+                       "day TEXT NOT NULL," \
+                       "transaction_num TEXT NOT NULL," \
+                       "transaction_description TEXT NOT NULL);"
+
+        cur.execute(create_table)
+
         for index in range(len(seasons)):
             # Create table with the create_table query
             create_table = create_table_template.format(season=seasons[index])
@@ -66,12 +78,18 @@ def create_season_tables(db_file):
                     if mon != day_no_comma.split("-")[0]:
                         month_index += 1
                         mon = months[month_index][:-5]
+                    # Insert into the single-season table
                     params = (mon, day_no_comma, transaction_num, transaction_no_stop)
                     insert_transaction = insert_transaction_template.format(season=seasons[index])
                     cur.execute(insert_transaction, params)
+
+                    # Insert into the all-in-one table
+                    params = (seasons[index], mon, day_no_comma, transaction_num, transaction_no_stop)
+                    insert_transaction = "INSERT INTO transactions(season, month, day, transaction_num, " \
+                                         "transaction_description) VALUES (?, ?, ?, ?, ?)"
+                    cur.execute(insert_transaction, params)
                     transaction_num += 1
                 day_index += 1
-
     except Error as e:
         print(e)
     finally:
@@ -82,4 +100,4 @@ def create_season_tables(db_file):
 
 
 if __name__ == '__main__':
-    create_season_tables(db_file=file_path)
+    create_tables(db_file=file_path)
